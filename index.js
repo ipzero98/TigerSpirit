@@ -1,59 +1,25 @@
-const Discord = require('discord.js');
-const client = new Discord.Client({ intents: ["GUILDS", "GUILD_MESSAGES"] })
-const dotenv = require('dotenv'); 
-dotenv.config();
+require('dotenv').config();
+const { Client, GatewayIntentBits } = require('discord.js');
 
-const sleep = (ms) => {
-    return new Promise((r) => setTimeout(r, ms));
-}
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageTyping] });
 
-if (process.env.TOKEN == null) {
-    console.log("An discord token is empty.");
-    sleep(60000).then(() => console.log("Service is getting stopped automatically"));
-    return 0;
-}
-
-const discordLogin = async() => {
-    try {
-        await client.login(process.env.TOKEN);  
-    } catch (TOKEN_INVALID) {
-        console.log("An invalid token was provided");
-        sleep(60000).then(() => console.log("Service is getting stopped automatically"));
-    }
-}
-
-
-discordLogin();
-
-
-client.on('ready', () => {
-    console.log(`Logged in as ${client.user.tag}.`);
+client.once('ready', () => {
+    console.log('봇이 준비되었습니다!');
 });
 
-  
-client.on('messageCreate', msg => {
+client.on('interactionCreate', async interaction => {
+    if (!interaction.isCommand()) return;
 
-    try { 
-        if (msg.content === process.env.PREFIX + 'call') msg.channel.send(`!callback`);
+    const { commandName } = interaction;
 
-        if (msg.content === process.env.PREFIX + 'avatar') msg.channel.send(msg.author.displayAvatarURL());
-        
-        if(msg.content === process.env.PREFIX + 'help') {
-            const embed = new Discord.MessageEmbed()
-            .setTitle("도움말")
-            .setColor('000') 
-            .setDescription('디스코드봇 테스트입니다.');
-
-            msg.reply({ embeds: [embed] })
-        }
-
-        if(msg.content === process.env.PREFIX + 'server') {
-            msg.channel.send(`현재 서버의 이름은 ${msg.guild.name} 입니다.\n총 멤버 수는 ${msg.guild.memberCount} 명 입니다.`)
-          }
-
-        console.log(msg.content)
-    } catch (e) {
-        console.log(e);
+    if (commandName === '안녕') {
+        await interaction.reply('안녕하세요! 제가 도와드릴 일이 있나요?');
+    } else if (commandName === '정보') {
+        await interaction.reply('이 봇은 한글 기반의 디스코드 봇입니다. 다양한 명령어를 사용할 수 있어요!');
+    } else if (commandName === '도움') {
+        await interaction.reply('사용할 수 있는 명령어: \n/안녕\n/정보\n/도움');
     }
-    
 });
+
+// 환경 변수에서 토큰을 가져와서 로그인
+client.login(process.env.TOKEN);
